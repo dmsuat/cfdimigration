@@ -582,7 +582,7 @@ class cmdSOHRD extends Command
                             if ($rowCount > 0 && $row && !empty($row[0])) {
                                 $insertValues = [
                                     "'{$row[0]}'",        // Docno
-                                    (isset($row[1]) && !empty($row[1])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[1])) . "', 120)" : 'NULL', // Docdate
+                                    $this->formatDate($row[1]),        // Docdate
                                     "'{$row[2]}'",        // Customercode
                                     "'{$row[3]}'",        // Discountcode
                                     "'{$row[4]}'",        // Shipto
@@ -590,7 +590,7 @@ class cmdSOHRD extends Command
                                     "'{$row[6]}'",        // Paymentcode
                                     "'{$row[7]}'",        // Dropship
                                     "'{$row[8]}'",        // Procstat
-                                    (isset($row[9]) && !empty($row[9])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[9])) . "', 120)" : 'NULL',   // Reqdate
+                                    $this->formatDate($row[9]),          // Reqdate
                                     "'{$row[10]}'",       // Totalsales
                                     "'{$row[11]}'",       // Lessdiscount
                                     "'{$row[12]}'",       // Salesdiscount
@@ -599,26 +599,26 @@ class cmdSOHRD extends Command
                                     "'{$row[15]}'",       // Spare1
                                     "'{$row[16]}'",       // Spare2
                                     "'{$row[17]}'",       // Spare3
-                                    "'{$row[19]}'",       // Recuser
-                                    (isset($row[20]) && !empty($row[20])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[20])) . "', 120)" : 'NULL', // Recdate
-                                    "'{$row[21]}'",       // Moduser
-                                    (isset($row[22]) && !empty($row[22])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[22])) . "', 120)" : 'NULL', // Moddate
-                                    "'{$row[23]}'",       // Postuser
-                                    (isset($row[24]) && !empty($row[24])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[24])) . "', 120)" : 'NULL', // Postdate
-                                    "'{$row[25]}'",       // Printuser
-                                    (isset($row[26]) && !empty($row[26])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[26])) . "', 120)" : 'NULL', // Printdate
-                                    "'{$row[27]}'",       // Sino
-                                    (isset($row[28]) && !empty($row[28])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[28])) . "', 120)" : 'NULL', // Sidate
-                                    (isset($row[29]) && !empty($row[29])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[29])) . "', 120)" : 'NULL', // Duedate
-                                    "'{$row[30]}'",       // Printaxuser
-                                    (isset($row[31]) && !empty($row[31])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[31])) . "', 120)" : 'NULL', // Printaxdate
-                                    "'{$row[32]}'",       // Remarks
-                                    "'{$row[33]}'",       // Grandhome
-                                    "'{$row[34]}'",       // NoSoref
-                                    "'{$row[35]}'",       // SiRef
-                                    "'{$row[36]}'",       // DRRef
-                                    "'{$row[37]}'",       // TransactionRef
-                                    "'{$row[38]}'",       // Distributor
+                                    "'{$row[18]}'",       // Recuser
+                                    $this->formatDate($row[19]),          // Recdate
+                                    "'{$row[20]}'",       // Moduser
+                                    $this->formatDate($row[21]),          // Moddate
+                                    "'{$row[22]}'",       // Postuser
+                                    $this->formatDate($row[23]),          // Postdate
+                                    "'{$row[24]}'",       // Printuser
+                                    $this->formatDate($row[25]),          // Printdate
+                                    "'{$row[26]}'",       // Sino
+                                    $this->formatDate($row[27]),          // Sidate
+                                    $this->formatDate($row[28]),          // Duedate
+                                    "'{$row[29]}'",       // Printaxuser
+                                    $this->formatDate($row[30]),          // Printaxdate
+                                    "'{$row[31]}'",       // Remarks
+                                    "'{$row[32]}'",       // Grandhome
+                                    "'{$row[33]}'",       // NoSoref
+                                    "'{$row[34]}'",       // SiRef
+                                    "'{$row[35]}'",       // DRRef
+                                    "'{$row[36]}'",       // TransactionRef
+                                    "'{$row[37]}'",       // Distributor
                                     "'{$row[39]}'",       // Salesman
                                     "'{$row[40]}'",       // AmountPaid
                                     "'{$row[41]}'",       // EWT
