@@ -49,11 +49,16 @@ class cmdSOHRD extends Command
     // Helper function to format dates or return NULL
     private function formatDate($dateString) {
         if (empty($dateString)) {
-            return null; 
+            return 'NULL'; 
         }
-
+    
         $timestamp = strtotime($dateString);
-        return ($timestamp !== false) ? date('Y-m-d H:i:s', $timestamp) : null;
+        if ($timestamp !== false) {
+            $formattedDate = date('Y-m-d H:i:s', $timestamp);
+            return "CONVERT(datetime, '$formattedDate', 120)"; // Add CONVERT
+        } else {
+            return 'NULL';
+        }
     }
     public function handle()
     {
@@ -77,46 +82,49 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
                     // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
                     foreach($file as $row) {
                         if ($rowCount > 0) {
                             if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                LoadedSO::create([
-                                    'Distributor'       => $row[0] ?? null,
-                                    'Salesman'          => $row[1] ?? null,
-                                    'Docno'             => $row[2] ?? null,
-                                    'Location'          => $row[3] ?? null,
-                                    'OrderDate'         => $row[4] ?? null,
-                                    'ReqDelDate'        => $row[5] ?? null,
-                                    'PaymentTerm'       => $row[6] ?? null,
-                                    'AccountCode'       => $row[7] ?? null,
-                                    'ProductCode'       => $row[8] ?? null,
-                                    'NumberofOrders'    => $row[9] ?? null,
-                                    'OrderUOM'          => $row[10] ?? null,
-                                    'SystemDate'        => $row[11] ?? null,
-                                    'SystemUser'        => $row[12] ?? null,
-                                    'Rownum'            => $row[13] ?? null,
-                                    'LoadedBy'          => $row[14] ?? null,
-                                    'DateLoaded'        => $row[15] ?? null,
-                                    'Status'            => $row[16] ?? null,
-                                    'SONo'              => $row[17] ?? null,
-                                    'SendStatus'        => $row[18] ?? null,
-                                    'Remarks'           => $row[19] ?? null
-                                ]);
+
+                                $insertValues = [
+                                    "'{$row[0]}'",         // Distributor
+                                    "'{$row[1]}'",         // Salesman
+                                    "'{$row[2]}'",         // Docno
+                                    "'{$row[3]}'",        // Location
+                                    $this->formatDate($row[4]),  // OrderDate (use formatDate)
+                                    $this->formatDate($row[5]),  // ReqDelDate (use formatDate)
+                                    "'{$row[6]}'",         // PaymentTerm
+                                    "'{$row[7]}'",         // AccountCode
+                                    "'{$row[8]}'",         // ProductCode
+                                    "'{$row[9]}'",         // NumberofOrders
+                                    "'{$row[10]}'",        // OrderUOM
+                                    $this->formatDate($row[11]), // SystemDate (use formatDate)
+                                    "'{$row[12]}'",        // SystemUser
+                                    "'{$row[13]}'",        // Rownum
+                                    "'{$row[14]}'",        // LoadedBy
+                                    $this->formatDate($row[15]), // DateLoaded (use formatDate)
+                                    "'{$row[16]}'",        // Status
+                                    "'{$row[17]}'",        // SONo
+                                    "'{$row[18]}'",        // SendStatus
+                                    "'{$row[19]}'"         // Remarks
+                                ];
+                
+                                $insertScript[] = "INSERT INTO LoadedSO (Distributor, Salesman, Docno, Location, OrderDate, ReqDelDate, PaymentTerm, AccountCode, ProductCode, NumberofOrders, OrderUOM, SystemDate, SystemUser, Rownum, LoadedBy, DateLoaded, Status, SONo, SendStatus, Remarks) VALUES (" . implode(',', $insertValues) . ");";
                             }
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.LoadedSO: $rowCount");
-                    // dd($counter);
+                    // Write INSERT statements to file
+                    $outputFilename = 'loadedso_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+
+                    $this->info("Insert script successfully generated at: $filePath");
+
                 } catch (\Exception $e) {
-                    DB::rollBack();
+                    // DB::rollBack();
                     $this->error("Error inserting rows: {$e->getMessage()}");
                 }
                 break;
@@ -137,35 +145,38 @@ class cmdSOHRD extends Command
         
                 try {
                     
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                ARTRAN::create([
-                                    'Docno'        => $row[0] ?? null,
-                                    'Applyto'      => $row[1] ?? null,
-                                    'Doctype'      => $row[2] ?? null,
-                                    'Customercode' => $row[3] ?? null,
-                                    'Paymentcode'  => $row[4] ?? null,
-                                    'Docdate'      => $row[5] ?? null,
-                                    'Duedate'      => $row[6] ?? null,
-                                    'Docamt'       => $row[7] ?? null,
-                                    'Recuser'      => $row[8] ?? null,
-                                    'Recdate'      => $row[9] ?? null,
-                                    'Dochome'      => $row[10] ?? null,
-                                    'Distributor'  => $row[11] ?? null
-                                ]);
-                            }
+                    $insertScript = [];  // Array to store INSERT statements
+
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            // Generate INSERT statement
+                            $insertValues = [
+                                "'{$row[0]}'",        // Docno
+                                "'{$row[1]}'",        // Applyto
+                                "'{$row[2]}'",        // Doctype
+                                "'{$row[3]}'",        // Customercode
+                                "'{$row[4]}'",        // Paymentcode
+                                $this->formatDate($row[5]), // Docdate (use formatDate)
+                                $this->formatDate($row[6]), // Duedate (use formatDate)
+                                "'{$row[7]}'",        // Docamt
+                                "'{$row[8]}'",        // Recuser
+                                $this->formatDate($row[9]), // Recdate (use formatDate)
+                                "'{$row[10]}'",       // Dochome
+                                "'{$row[11]}'",       // Distributor
+                            ];
+
+                            $insertScript[] = "INSERT INTO ARTRAN (Docno, Applyto, Doctype, Customercode, Paymentcode, Docdate, Duedate, Docamt, Recuser, Recdate, Dochome, Distributor) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.ARTRAN: $rowCount");
-                    // dd($counter);
+
+                    // Write INSERT statements to file
+                    $outputFilename = 'artran_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename); // Generate full path
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                   
+                    $this->info("Insert script successfully generated: $outputFilename");
                 } catch (\Exception $e) {
                     DB::rollBack();
                     $this->error("Error inserting rows: {$e->getMessage()}");
@@ -187,56 +198,59 @@ class cmdSOHRD extends Command
             
                     try {
                         
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-                                    SOHDR::create([
-                                        'Docno'             => $row[0] ?? null
-                                        ,'Docdate'          => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null
-                                        ,'Customercode'     => $row[2] ?? null
-                                        ,'Discountcode'     => $row[3] ?? null
-                                        ,'Shipto'           => $row[4] ?? null
-                                        ,'Poref'            => $row[5] ?? null
-                                        ,'Paymentcode'      => $row[6] ?? null
-                                        ,'Dropship'         => $row[7] ?? null
-                                        ,'Procstat'         => $row[8] ?? null
-                                        ,'Reqdate'          => isset($row[9]) ? date('Y-m-d H:i:s', strtotime($row[9])) : null
-                                        ,'Totalsales'       => $row[10] ?? null
-                                        ,'Lessdiscount'     => $row[11] ?? null
-                                        ,'Salesdiscount'    => $row[12] ?? null
-                                        ,'Addvat'           => $row[13] ?? null
-                                        ,'Grandtotal'       => $row[14] ?? null
-                                        ,'Spare1'           => $row[15] ?? null
-                                        ,'Spare2'           => $row[16] ?? null
-                                        ,'Spare3'           => $row[17] ?? null
-                                        ,'Recuser'          => $row[18] ?? null
-                                        ,'Recdate'          => isset($row[19]) ? date('Y-m-d H:i:s', strtotime($row[19])) : null
-                                        ,'Moduser'          => $row[20] ?? null
-                                        ,'Moddate'          => isset($row[21]) ? date('Y-m-d H:i:s', strtotime($row[21])) : null
-                                        ,'Postuser'         => $row[22] ?? null
-                                        ,'Postdate'         => isset($row[23]) ? date('Y-m-d H:i:s', strtotime($row[23])) : null
-                                        ,'Printuser'        => $row[24] ?? null
-                                        ,'Printdate'        => isset($row[25]) ? date('Y-m-d H:i:s', strtotime($row[25])) : null
-                                        ,'PriceMatrixcode'  => $row[26] ?? null
-                                        ,'Remarks'          => $row[27] ?? null
-                                        ,'Distributor'      => $row[28] ?? null
-                                        ,'Salesman'         => $row[29] ?? null
-                                        ,'isPassed'         => $row[30] ?? null
-                                        ,'PODate'           => isset($row[31]) ? date('Y-m-d H:i:s', strtotime($row[31])) : null
-                                        ,'ForbidPartial'    => $row[32] ?? null
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"];  // Start with BEGIN TRAN
+
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                $insertValues = [
+                                    "'{$row[0]}'",        // Docno
+                                    $this->formatDate($row[1]),   // Docdate
+                                    "'{$row[2]}'",        // Customercode
+                                    "'{$row[3]}'",        // Discountcode
+                                    "'{$row[4]}'",        // Shipto
+                                    "'{$row[5]}'",        // Poref
+                                    "'{$row[6]}'",        // Paymentcode
+                                    "'{$row[7]}'",        // Dropship
+                                    "'{$row[8]}'",        // Procstat
+                                    $this->formatDate($row[9]),   // Reqdate
+                                    "'{$row[10]}'",       // Totalsales
+                                    "'{$row[11]}'",       // Lessdiscount
+                                    "'{$row[12]}'",       // Salesdiscount
+                                    "'{$row[13]}'",       // Addvat
+                                    "'{$row[14]}'",       // Grandtotal
+                                    "'{$row[15]}'",       // Spare1
+                                    "'{$row[16]}'",       // Spare2
+                                    "'{$row[17]}'",       // Spare3
+                                    "'{$row[18]}'",       // Recuser
+                                    $this->formatDate($row[19]),   // Recdate
+                                    "'{$row[20]}'",       // Moduser
+                                    $this->formatDate($row[21]),   // Moddate
+                                    "'{$row[22]}'",       // Postuser
+                                    $this->formatDate($row[23]),   // Postdate
+                                    "'{$row[24]}'",       // Printuser
+                                    $this->formatDate($row[25]),   // Printdate
+                                    "'{$row[26]}'",       // PriceMatrixcode
+                                    "'{$row[27]}'",       // Remarks
+                                    "'{$row[28]}'",       // Distributor
+                                    "'{$row[29]}'",       // Salesman
+                                    "'{$row[30]}'",       // isPassed
+                                    $this->formatDate($row[31]),   // PODate
+                                    "'{$row[32]}'",       // ForbidPartial
+                                ];
+
+                                $insertScript[] = "INSERT INTO SPM.SOHDR (Docno, Docdate, Customercode, Discountcode, Shipto, Poref, Paymentcode, Dropship, Procstat, Reqdate, Totalsales, Lessdiscount, Salesdiscount, Addvat, Grandtotal, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Printuser, Printdate, PriceMatrixcode, Remarks, Distributor, Salesman, isPassed, PODate, ForbidPartial) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // Commit the transaction
-                        DB::commit();
-                        $this->info("Rows successfully inserted into SPM.SOHDR: $rowCount");
-                        // dd($counter);
+                        $insertScript[] = "ROLLBACK TRAN;"; // Append ROLLBACK TRAN
+
+                        // Write INSERT statements to file
+                        $outputFilename = 'sohdr_insert_script.sql';
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+
+                        $this->info("Insert script successfully generated at: $filePath");
                     } catch (\Exception $e) {
                         DB::rollBack();
                         $this->error("Error inserting rows: {$e->getMessage()}");
@@ -257,46 +271,50 @@ class cmdSOHRD extends Command
                     $file->next();
             
                     try {
-                        
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-                                    IVTRAN::create([
-                                        'Distributor'      => $row[0] ?? null,
-                                        'DocType'          => $row[1] ?? null,
-                                        'Docdate'          => isset($row[2]) ? date('Y-m-d H:i:s', strtotime($row[2])) : null,
-                                        'Docno'            => $row[3] ?? null,
-                                        'ApplyTo'          => $row[4] ?? null,
-                                        'Location'         => $row[5] ?? null,
-                                        'Productcode'      => $row[6] ?? null,
-                                        'ExpiryDate'       => isset($row[7]) ? date('Y-m-d H:i:s', strtotime($row[7])) : null,
-                                        'Inventoriable'    => $row[8] ?? null,
-                                        'Qty'              => $row[9] ?? null,
-                                        'UnitCost'         => $row[10] ?? null,
-                                        'StockUom'         => $row[11] ?? null,
-                                        'TranUom'          => $row[12] ?? null,
-                                        'Rownum'           => $row[13] ?? null,
-                                        'Remarks'          => $row[14] ?? null,
-                                        'Procstat'         => $row[15] ?? null,
-                                        'PostUser'         => $row[16] ?? null,
-                                        'PostDate'         => isset($row[17]) ? date('Y-m-d H:i:s', strtotime($row[17])) : null,
-                                        'BatchNo'          => $row[18] ?? null,
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"];
+        
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                // Generate INSERT statement (with direct date formatting)
+                                $insertValues = [
+                                    "'{$row[0]}'",        // Distributor
+                                    "'{$row[1]}'",        // DocType
+                                    (isset($row[2]) && !empty($row[2])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[2])) . "', 120)" : 'NULL', // Docdate
+                                    "'{$row[3]}'",        // Docno
+                                    "'{$row[4]}'",        // ApplyTo
+                                    "'{$row[5]}'",        // Location
+                                    "'{$row[6]}'",        // Productcode
+                                    (isset($row[7]) && !empty($row[7])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[7])) . "', 120)" : 'NULL', // ExpiryDate
+                                    "'{$row[8]}'",        // Inventoriable
+                                    "'{$row[9]}'",        // Qty
+                                    "'{$row[10]}'",       // UnitCost
+                                    "'{$row[11]}'",       // StockUom
+                                    "'{$row[12]}'",       // TranUom
+                                    "'{$row[13]}'",       // Rownum
+                                    "'{$row[14]}'",       // Remarks
+                                    "'{$row[15]}'",       // Procstat
+                                    "'{$row[16]}'",       // PostUser
+                                    (isset($row[17]) && !empty($row[17])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[17])) . "', 120)" : 'NULL', // PostDate
+                                    "'{$row[18]}'",       // BatchNo
+                                ];
+        
+                                $insertScript[] = "INSERT INTO SPM.IVTRAN (Distributor, DocType, Docdate, Docno, ApplyTo, Location, Productcode, ExpiryDate, Inventoriable, Qty, UnitCost, StockUom, TranUom, Rownum, Remarks, Procstat, PostUser, PostDate, BatchNo) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // Commit the transaction
-                        DB::commit();
-                        $this->info("Rows successfully inserted into SPM.IVTRAN: $rowCount");
-                        // dd($counter);
+        
+                        $insertScript[] = "ROLLBACK TRAN;";
+        
+                        // Write INSERT statements to file
+                        $outputFilename = 'ivtran_insert_script.sql';
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+        
+                        $this->info("Insert script successfully generated at: $filePath");
+        
                     } catch (\Exception $e) {
-                        DB::rollBack();
-                        $this->error("Error inserting rows: {$e->getMessage()}");
+                        $this->error("Error generating insert script: {$e->getMessage()}");
                     }
                     break;
             case "SOLIN":
@@ -312,66 +330,51 @@ class cmdSOHRD extends Command
                     // Skip header row
                     $file->current(); 
                     $file->next();
-            
                     try {
-                        
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-
-                                    // SOLIN:: where('Docno', $row[0])
-                                    //     ->where('CustomerCode', $row[22])
-                                    //     ->where('Distributor', $row[23])
-                                    //     ->where('RowNum', $row[17])
-                                    //     ->delete();
-
-                                    SOLIN::create([
-                                        'DocNo'          => $row[0] ?? null,
-                                        'LineType'       => $row[1] ?? null,
-                                        'ProductCode'    => $row[2] ?? null,
-                                        'Description'    => preg_replace('/[^\x00-\x7F\xA0-\xFF]/u', '', $row[3]),
-                                        'Location'       => $row[4] ?? null,
-                                        'StockUOM'       => $row[5] ?? null,
-                                        'OrderUOM'       => $row[6] ?? null,
-                                        'Qty'            => $row[7] ?? null,
-                                        'UnitCost'       => $row[8] ?? null,
-                                        'Amount'         => $row[9] ?? null,
-                                        'Disc1'          => $row[10] ?? null,
-                                        'Disc2'          => $row[11] ?? null,
-                                        'Disc3'          => $row[12] ?? null,
-                                        'Disc4'          => $row[13] ?? null,
-                                        'Disc5'          => $row[14] ?? null,
-                                        'Discount'       => $row[15] ?? null,
-                                        'NetAmount'      => $row[16] ?? null,
-                                        'RowNum'         => $row[17] ?? null,
-                                        'Ref1'           => $row[18] ?? null,
-                                        'Ref2'           => $row[19] ?? null,
-                                        'Ref3'           => $row[20] ?? null,
-                                        'RemQty'         => $row[21] ?? null,
-                                        'CustomerCode'   => $row[22] ?? null,
-                                        'Distributor'    => $row[23] ?? null,
-                                        'RATE1'          => $row[24] ?? null,
-                                        'RATE2'          => $row[25] ?? null,
-                                        'RATE3'          => $row[26] ?? null,
-                                        'RATE1BASIS'     => $row[27] ?? null,
-                                        'RATE2BASIS'     => $row[28] ?? null,
-                                        'RATE3BASIS'     => $row[29] ?? null,
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"];  // Add BEGIN TRAN
+                
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                // Generate INSERT statement (with direct date formatting)
+                                $insertValues = [
+                                    "'{$row[0]}'",        // Distributor
+                                    "'{$row[1]}'",        // DocType
+                                    (isset($row[2]) && !empty($row[2])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[2])) . "', 120)" : 'NULL', // Docdate
+                                    "'{$row[3]}'",        // Docno
+                                    "'{$row[4]}'",        // ApplyTo
+                                    "'{$row[5]}'",        // Location
+                                    "'{$row[6]}'",        // Productcode
+                                    (isset($row[7]) && !empty($row[7])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[7])) . "', 120)" : 'NULL', // ExpiryDate
+                                    "'{$row[8]}'",        // Inventoriable
+                                    "'{$row[9]}'",        // Qty
+                                    "'{$row[10]}'",       // UnitCost
+                                    "'{$row[11]}'",       // StockUom
+                                    "'{$row[12]}'",       // TranUom
+                                    "'{$row[13]}'",       // Rownum
+                                    "'{$row[14]}'",       // Remarks
+                                    "'{$row[15]}'",       // Procstat
+                                    "'{$row[16]}'",       // PostUser
+                                    (isset($row[17]) && !empty($row[17])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[17])) . "', 120)" : 'NULL', // PostDate
+                                    "'{$row[18]}'",       // BatchNo
+                                ];
+                
+                                $insertScript[] = "INSERT INTO SPM.SOLIN (Distributor, DocType, Docdate, Docno, ApplyTo, Location, Productcode, ExpiryDate, Inventoriable, Qty, UnitCost, StockUom, TranUom, Rownum, Remarks, Procstat, PostUser, PostDate, BatchNo) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // Commit the transaction
-                        DB::COMMIT();
-                        $this->info("Rows successfully inserted into SPM.SOLIN: $rowCount");
-                        // dd($counter);
+                
+                        $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                        // Write INSERT statements to file
+                        $outputFilename = 'solin_insert_script.sql';
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+                
+                        $this->info("Insert script successfully generated at: $filePath");
+                
                     } catch (\Exception $e) {
-                        DB::rollBack();
-                        $this->error("Error inserting rows: {$e->getMessage()}");
+                        $this->error("Error generating insert script: {$e->getMessage()}");
                     }
                     break;
             case "SOHDRH":
@@ -389,60 +392,63 @@ class cmdSOHRD extends Command
                     $file->next();
             
                     try {
-                        
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-                                    SOHDRH::create([
-                                        'DocNo'            => $row[0] ?? null,
-                                        'DocDate'          => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'CustomerCode'     => $row[2] ?? null,
-                                        'DiscountCode'     => $row[3] ?? null,
-                                        'ShipTo'           => $row[4] ?? null,
-                                        'PORef'            => $row[5] ?? null,
-                                        'PaymentCode'      => $row[6] ?? null,
-                                        'DropShip'         => $row[7] ?? null,
-                                        'Procstat'         => $row[8] ?? null,
-                                        'ReqDate'          => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'TotalSales'       => $row[10] ?? null,
-                                        'LessDiscount'     => $row[11] ?? null,
-                                        'SalesDiscount'    => $row[12] ?? null,
-                                        'AddVAT'           => $row[13] ?? null,
-                                        'GrandTotal'       => $row[14] ?? null,
-                                        'Spare1'           => $row[15] ?? null,
-                                        'Spare2'           => $row[16] ?? null,
-                                        'Spare3'           => $row[17] ?? null,
-                                        'RecUser'          => $row[18] ?? null,
-                                        'RecDate'          => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'ModUser'          => $row[20] ?? null,
-                                        'ModDate'          => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'PostUser'         => $row[22] ?? null,
-                                        'PostDate'         => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'PrintUser'        => $row[24] ?? null,
-                                        'PrintDate'        => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'PriceMatrixCode'  => $row[26] ?? null,
-                                        'Remarks'          => $row[27] ?? null,
-                                        'Distributor'      => $row[28] ?? null,
-                                        'Salesman'         => $row[29] ?? null,
-                                        'isPassed'         => $row[30] ?? null,
-                                        'PODate'           => isset($row[1]) ? date('Y-m-d H:i:s', strtotime($row[1])) : null,
-                                        'ForbidPartial'    => $row[32] ?? null,
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"];  // Start the transaction in the script
+                    
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                $insertValues = [
+                                    "'{$row[0]}'",        // DocNo
+                                    (isset($row[1]) && !empty($row[1])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[1])) . "', 120)" : 'NULL', // DocDate
+                                    "'{$row[2]}'",        // CustomerCode
+                                    "'{$row[3]}'",        // DiscountCode
+                                    "'{$row[4]}'",        // ShipTo
+                                    "'{$row[5]}'",        // PORef
+                                    "'{$row[6]}'",        // PaymentCode
+                                    "'{$row[7]}'",        // DropShip
+                                    "'{$row[8]}'",        // Procstat
+                                    (isset($row[9]) && !empty($row[9])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[9])) . "', 120)" : 'NULL',   // ReqDate
+                                    "'{$row[10]}'",       // TotalSales
+                                    "'{$row[11]}'",       // LessDiscount
+                                    "'{$row[12]}'",       // SalesDiscount
+                                    "'{$row[13]}'",       // AddVAT
+                                    "'{$row[14]}'",       // GrandTotal
+                                    "'{$row[15]}'",       // Spare1
+                                    "'{$row[16]}'",       // Spare2
+                                    "'{$row[17]}'",       // Spare3
+                                    "'{$row[18]}'",       // RecUser
+                                    (isset($row[19]) && !empty($row[19])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[19])) . "', 120)" : 'NULL', // RecDate
+                                    "'{$row[20]}'",       // ModUser
+                                    (isset($row[21]) && !empty($row[21])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[21])) . "', 120)" : 'NULL', // ModDate
+                                    "'{$row[22]}'",       // PostUser
+                                    (isset($row[23]) && !empty($row[23])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[23])) . "', 120)" : 'NULL', // PostDate
+                                    "'{$row[24]}'",       // PrintUser
+                                    (isset($row[25]) && !empty($row[25])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[25])) . "', 120)" : 'NULL', // PrintDate
+                                    "'{$row[26]}'",       // PriceMatrixCode
+                                    "'{$row[27]}'",       // Remarks
+                                    "'{$row[28]}'",       // Distributor
+                                    "'{$row[29]}'",       // Salesman
+                                    "'{$row[30]}'",       // isPassed
+                                    (isset($row[31]) && !empty($row[31])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[31])) . "', 120)" : 'NULL', // PODate
+                                    "'{$row[32]}'"        // ForbidPartial
+                                ];
+                    
+                                $insertScript[] = "INSERT INTO SPM.SOHDRH (DocNo, DocDate, CustomerCode, DiscountCode, ShipTo, PORef, PaymentCode, DropShip, Procstat, ReqDate, TotalSales, LessDiscount, SalesDiscount, AddVAT, GrandTotal, Spare1, Spare2, Spare3, RecUser, RecDate, ModUser, ModDate, PostUser, PostDate, PrintUser, PrintDate, PriceMatrixCode, Remarks, Distributor, Salesman, isPassed, PODate, ForbidPartial) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // Commit the transaction
-                        DB::commit();
-                        $this->info("Rows successfully inserted into SPM.SOHDRH: $rowCount");
-                        // dd($counter);
+                    
+                        $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                    
+                        // Write INSERT statements to file
+                        $outputFilename = 'sohdrh_insert_script.sql';
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+                    
+                        $this->info("Insert script successfully generated at: $filePath");
+                    
                     } catch (\Exception $e) {
-                        DB::rollBack();
-                        $this->error("Error inserting rows: {$e->getMessage()}");
+                        $this->error("Error generating insert script: {$e->getMessage()}");
                     }
                     break;
             case "SOLINH":
@@ -460,61 +466,60 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    $processedRecords = []; // Array to track processed combinations
-                    foreach($file as $row) {
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
                         if ($rowCount > 0 && $row && !empty($row[0])) {
-                            $recordKey = $row[0] . '_' . $row[23] . '_' . $row[17];
-                            if (!in_array($recordKey, $processedRecords)) {
-                                $processedRecords[] = $recordKey;
-                                // Create and save using the Eloquent model
-                                
-                                SOLINH::create([
-                                    'DocNo'          => $row[0] ?? null,
-                                    'LineType'       => $row[1] ?? null,
-                                    'ProductCode'    => $row[2] ?? null,
-                                    'Description'    => preg_replace('/[^\x00-\x7F\xA0-\xFF]/u', '', $row[3]),
-                                    'Location'       => $row[4] ?? null,
-                                    'StockUOM'       => $row[5] ?? null,
-                                    'OrderUOM'       => $row[6] ?? null,
-                                    'Qty'            => $row[7] ?? null,
-                                    'UnitCost'       => $row[8] ?? null,
-                                    'Amount'         => $row[9] ?? null,
-                                    'Disc1'          => $row[10] ?? null,
-                                    'Disc2'          => $row[11] ?? null,
-                                    'Disc3'          => $row[12] ?? null,
-                                    'Disc4'          => $row[13] ?? null,
-                                    'Disc5'          => $row[14] ?? null,
-                                    'Discount'       => $row[15] ?? null,
-                                    'NetAmount'      => $row[16] ?? null,
-                                    'RowNum'         => $row[17] ?? null,
-                                    'Ref1'           => $row[18] ?? null,
-                                    'Ref2'           => $row[19] ?? null,
-                                    'Ref3'           => $row[20] ?? null,
-                                    'RemQty'         => $row[21] ?? null,
-                                    'CustomerCode'   => $row[22] ?? null,
-                                    'Distributor'    => $row[23] ?? null,
-                                    'RATE1'          => $row[24] ?? null,
-                                    'RATE2'          => $row[25] ?? null,
-                                    'RATE3'          => $row[26] ?? null,
-                                    'RATE1BASIS'     => $row[27] ?? null,
-                                    'RATE2BASIS'     => $row[28] ?? null,
-                                    'RATE3BASIS'     => $row[29] ?? null,
-                                ]);
-                            }
+                            $insertValues = [
+                                "'{$row[0]}'",        // DocNo
+                                "'{$row[1]}'",        // LineType
+                                "'{$row[2]}'",        // ProductCode
+                                "'". preg_replace('/[^\x00-\x7F\xA0-\xFF]/u', '', $row[3]) . "'", // Description (cleaned)
+                                "'{$row[4]}'",        // Location
+                                "'{$row[5]}'",        // StockUOM
+                                "'{$row[6]}'",        // OrderUOM
+                                "'{$row[7]}'",        // Qty
+                                "'{$row[8]}'",        // UnitCost
+                                "'{$row[9]}'",        // Amount
+                                "'{$row[10]}'",       // Disc1
+                                "'{$row[11]}'",       // Disc2
+                                "'{$row[12]}'",       // Disc3
+                                "'{$row[13]}'",       // Disc4
+                                "'{$row[14]}'",       // Disc5
+                                "'{$row[15]}'",       // Discount
+                                "'{$row[16]}'",       // NetAmount
+                                "'{$row[17]}'",       // RowNum
+                                "'{$row[18]}'",       // Ref1
+                                "'{$row[19]}'",       // Ref2
+                                "'{$row[20]}'",       // Ref3
+                                "'{$row[21]}'",       // RemQty
+                                "'{$row[22]}'",       // CustomerCode
+                                "'{$row[23]}'",       // Distributor
+                                "'{$row[24]}'",       // RATE1
+                                "'{$row[25]}'",       // RATE2
+                                "'{$row[26]}'",       // RATE3
+                                "'{$row[27]}'",       // RATE1BASIS
+                                "'{$row[28]}'",       // RATE2BASIS
+                                "'{$row[29]}'"        // RATE3BASIS
+                            ];
+                
+                            $insertScript[] = "INSERT INTO SPM.SOLINH (DocNo, LineType, ProductCode, Description, Location, StockUOM, OrderUOM, Qty, UnitCost, Amount, Disc1, Disc2, Disc3, Disc4, Disc5, Discount, NetAmount, RowNum, Ref1, Ref2, Ref3, RemQty, CustomerCode, Distributor, RATE1, RATE2, RATE3, RATE1BASIS, RATE2BASIS, RATE3BASIS) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.SOLINH: $rowCount");
-                    // dd($counter);
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'solinh_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "SODRHDR":
@@ -532,70 +537,74 @@ class cmdSOHRD extends Command
                     $file->next();
             
                     try {
-                        
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-                                    SODRHDR::create([
-                                        'Docno'            => $row[0]  ?? null,
-                                        'Sono'             => $row[1]  ?? null,
-                                        'Docdate'          => isset($row[2]) ? date('Y-m-d H:i:s', strtotime($row[2])) : null,
-                                        'Customercode'     => $row[3]  ?? null,
-                                        'Discountcode'     => $row[4]  ?? null,
-                                        'Shipto'           => $row[5]  ?? null,
-                                        'Poref'            => $row[6]  ?? null,
-                                        'Paymentcode'      => $row[7]  ?? null,
-                                        'Dropship'         => $row[8]  ?? null,
-                                        'Procstat'         => $row[9]  ?? null,
-                                        'Reqdate'          => isset($row[10]) ? date('Y-m-d H:i:s', strtotime($row[10])) : null,
-                                        'Totalsales'       => $row[11] ?? null,
-                                        'Lessdiscount'     => $row[12] ?? null,
-                                        'Salesdiscount'    => $row[13] ?? null,
-                                        'Addvat'           => $row[14] ?? null,
-                                        'Grandtotal'       => $row[15] ?? null,
-                                        'Spare1'           => $row[16] ?? null,
-                                        'Spare2'           => $row[17] ?? null,
-                                        'Spare3'           => $row[18] ?? null,
-                                        'Recuser'          => $row[19] ?? null,
-                                        'Recdate'          => isset($row[20]) ? date('Y-m-d H:i:s', strtotime($row[20])) : null,
-                                        'Moduser'          => $row[21] ?? null,
-                                        'Moddate'          => isset($row[22]) ? date('Y-m-d H:i:s', strtotime($row[22])) : null,
-                                        'Postuser'         => $row[23] ?? null,
-                                        'Postdate'         => isset($row[24]) ? date('Y-m-d H:i:s', strtotime($row[24])) : null,
-                                        'Printuser'        => $row[25] ?? null,
-                                        'Printdate'        => isset($row[26]) ? date('Y-m-d H:i:s', strtotime($row[26])) : null,
-                                        'Sino'             => $row[27] ?? null,
-                                        'Sidate'           => isset($row[28]) ? date('Y-m-d H:i:s', strtotime($row[28])) : null,
-                                        'Duedate'          => isset($row[29]) ? date('Y-m-d H:i:s', strtotime($row[29])) : null,
-                                        'Printaxuser'      => $row[30] ?? null,
-                                        'Printaxdate'      => isset($row[31]) ? date('Y-m-d H:i:s', strtotime($row[31])) : null,
-                                        'Remarks'          => $row[32] ?? null,
-                                        'Grandhome'        => $row[33] ?? null,
-                                        'NoSoref'          => $row[34] ?? null,
-                                        'SiRef'            => $row[35] ?? null,
-                                        'DRRef'            => $row[36] ?? null,
-                                        'TransactionRef'   => $row[37] ?? null,
-                                        'Distributor'      => $row[38] ?? null,
-                                        'Salesman'         => $row[39] ?? null,
-                                        'AmountPaid'       => $row[40] ?? null,
-                                        'EWT'              => $row[41] ?? null,
-                                        'ORNo'             => $row[42] ?? null,
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"];
+                    
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                $insertValues = [
+                                    "'{$row[0]}'",        // Docno
+                                    (isset($row[1]) && !empty($row[1])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[1])) . "', 120)" : 'NULL', // Docdate
+                                    "'{$row[2]}'",        // Customercode
+                                    "'{$row[3]}'",        // Discountcode
+                                    "'{$row[4]}'",        // Shipto
+                                    "'{$row[5]}'",        // Poref
+                                    "'{$row[6]}'",        // Paymentcode
+                                    "'{$row[7]}'",        // Dropship
+                                    "'{$row[8]}'",        // Procstat
+                                    (isset($row[9]) && !empty($row[9])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[9])) . "', 120)" : 'NULL',   // Reqdate
+                                    "'{$row[10]}'",       // Totalsales
+                                    "'{$row[11]}'",       // Lessdiscount
+                                    "'{$row[12]}'",       // Salesdiscount
+                                    "'{$row[13]}'",       // Addvat
+                                    "'{$row[14]}'",       // Grandtotal
+                                    "'{$row[15]}'",       // Spare1
+                                    "'{$row[16]}'",       // Spare2
+                                    "'{$row[17]}'",       // Spare3
+                                    "'{$row[19]}'",       // Recuser
+                                    (isset($row[20]) && !empty($row[20])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[20])) . "', 120)" : 'NULL', // Recdate
+                                    "'{$row[21]}'",       // Moduser
+                                    (isset($row[22]) && !empty($row[22])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[22])) . "', 120)" : 'NULL', // Moddate
+                                    "'{$row[23]}'",       // Postuser
+                                    (isset($row[24]) && !empty($row[24])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[24])) . "', 120)" : 'NULL', // Postdate
+                                    "'{$row[25]}'",       // Printuser
+                                    (isset($row[26]) && !empty($row[26])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[26])) . "', 120)" : 'NULL', // Printdate
+                                    "'{$row[27]}'",       // Sino
+                                    (isset($row[28]) && !empty($row[28])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[28])) . "', 120)" : 'NULL', // Sidate
+                                    (isset($row[29]) && !empty($row[29])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[29])) . "', 120)" : 'NULL', // Duedate
+                                    "'{$row[30]}'",       // Printaxuser
+                                    (isset($row[31]) && !empty($row[31])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[31])) . "', 120)" : 'NULL', // Printaxdate
+                                    "'{$row[32]}'",       // Remarks
+                                    "'{$row[33]}'",       // Grandhome
+                                    "'{$row[34]}'",       // NoSoref
+                                    "'{$row[35]}'",       // SiRef
+                                    "'{$row[36]}'",       // DRRef
+                                    "'{$row[37]}'",       // TransactionRef
+                                    "'{$row[38]}'",       // Distributor
+                                    "'{$row[39]}'",       // Salesman
+                                    "'{$row[40]}'",       // AmountPaid
+                                    "'{$row[41]}'",       // EWT
+                                    "'{$row[42]}'",       // ORNo
+                                ];
+                    
+                                // Explicitly list column names to match the $insertValues array
+                                $columns = "Docno, Docdate, Customercode, Discountcode, Shipto, Poref, Paymentcode, Dropship, Procstat, Reqdate, Totalsales, Lessdiscount, Salesdiscount, Addvat, Grandtotal, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Printuser, Printdate, Sino, Sidate, Duedate, Printaxuser, Printaxdate, Remarks, Grandhome, NoSoref, SiRef, DRRef, TransactionRef, Distributor, Salesman, AmountPaid, EWT, ORNo";
+                                $insertScript[] = "INSERT INTO SPM.SODRHDR ($columns) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // Commit the transaction
-                        DB::commit();
-                        $this->info("Rows successfully inserted into SPM.SODRHDR: $rowCount");
-                        // dd($counter);
+                    
+                        $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                    
+                        // Write INSERT statements to file
+                        $outputFilename = 'SODRHDR_insert_script.sql';
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+                    
+                        $this->info("Insert script successfully generated at: $filePath");
+                    
                     } catch (\Exception $e) {
-                        DB::rollBack();
-                        $this->error("Error inserting rows: {$e->getMessage()}");
+                        $this->error("Error generating insert script: {$e->getMessage()}");
                     }
                     break;
             case "SODRLIN":
@@ -613,71 +622,75 @@ class cmdSOHRD extends Command
                     $file->next();
             
                     try {
-                        
-                        // Wrap the operation in a database transaction
                         $rowCount = 0;
-                        DB::beginTransaction();
-                        foreach($file as $row) {
-                            if ($rowCount > 0) {
-                                if ($row && !empty($row[0])) {
-                                    // Create and save using the Eloquent model
-                                    SODRLIN::CREATE([
-                                        'Docno'         => $row[0]  ?? null,
-                                        'Linetype'       => $row[1]  ?? null,
-                                        'Productcode'    => $row[2]  ?? null,
-                                        'Description'    => $row[3]  ?? null,
-                                        'Location'       => $row[4]  ?? null,
-                                        'Stockuom'       => $row[5]  ?? null,
-                                        'Orderuom'       => $row[6]  ?? null,
-                                        'Qty'           => $row[7]  ?? null,
-                                        'Delqty'         => $row[8]  ?? null,
-                                        'Backqty'        => $row[9]  ?? null,
-                                        'Unitcost'       => $row[10] ?? null,
-                                        'Amount'         => $row[11] ?? null,
-                                        'Disc1'          => $row[12] ?? null,
-                                        'Disc2'          => $row[13] ?? null,
-                                        'Disc3'          => $row[14] ?? null,
-                                        'Disc4'          => $row[15] ?? null,
-                                        'Disc5'          => $row[16] ?? null,
-                                        'Discount'       => $row[17] ?? null,
-                                        'NetAmount'      => $row[18] ?? null,
-                                        'Rownum'         => $row[19] ?? null,
-                                        'Ref1'          => $row[20] ?? null,
-                                        'Ref2'          => $row[21] ?? null,
-                                        'Ref3'          => $row[22] ?? null,
-                                        'Acctcode'       => $row[23] ?? null,
-                                        'Sorownum'       => $row[24] ?? null,
-                                        'Delpc'          => $row[25] ?? null,
-                                        'Rempc'          => $row[26] ?? null,
-                                        'Avecost'        => $row[27] ?? null,
-                                        'ExpiryDate'     => $this->formatDate($row[28]), 
-                                        'ExpYear'        => $row[29] ?? null,
-                                        'ExpMonth'       => $row[30] ?? null,
-                                        'ExpDay'         => $row[31] ?? null,
-                                        'MonthDay'       => $row[32] ?? null,
-                                        'PromoQty'       => $row[33] ?? null,
-                                        'Distributor'    => $row[34] ?? null,
-                                        'AllocationNo'   => $row[35] ?? null,
-                                        'RATE1'          => $row[36] ?? null,
-                                        'RATE2'          => $row[37] ?? null,
-                                        'RATE3'          => $row[38] ?? null,
-                                        'RATE1BASIS'     => $row[39] ?? null,
-                                        'RATE2BASIS'     => $row[40] ?? null,
-                                        'RATE3BASIS'     => $row[41] ?? null,
-                                        'BatchNo'        => $row[42] ?? null,
-                                    ]);
-                                }
+                        $insertScript = ["BEGIN TRAN;"]; // Start the transaction in the script
+                    
+                        foreach ($file as $row) {
+                            if ($rowCount > 0 && $row && !empty($row[0])) {
+                                $insertValues = [
+                                    "'{$row[0]}'",        // Docno
+                                    "'{$row[1]}'",        // Linetype
+                                    "'{$row[2]}'",        // Productcode
+                                    "'{$row[3]}'",        // Description
+                                    "'{$row[4]}'",        // Location
+                                    "'{$row[5]}'",        // Stockuom
+                                    "'{$row[6]}'",        // Orderuom
+                                    "'{$row[7]}'",        // Qty
+                                    "'{$row[8]}'",        // Delqty
+                                    "'{$row[9]}'",        // Backqty
+                                    "'{$row[10]}'",       // Unitcost
+                                    "'{$row[11]}'",       // Amount
+                                    "'{$row[12]}'",       // Disc1
+                                    "'{$row[13]}'",       // Disc2
+                                    "'{$row[14]}'",       // Disc3
+                                    "'{$row[15]}'",       // Disc4
+                                    "'{$row[16]}'",       // Disc5
+                                    "'{$row[17]}'",       // Discount
+                                    "'{$row[18]}'",       // NetAmount
+                                    "'{$row[19]}'",       // Rownum
+                                    "'{$row[20]}'",       // Ref1
+                                    "'{$row[21]}'",       // Ref2
+                                    "'{$row[22]}'",       // Ref3
+                                    "'{$row[23]}'",       // Acctcode
+                                    "'{$row[24]}'",       // Sorownum
+                                    "'{$row[25]}'",       // Delpc
+                                    "'{$row[26]}'",       // Rempc
+                                    "'{$row[27]}'",       // Avecost
+                                    (isset($row[28]) && !empty($row[28])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[28])) . "', 120)" : 'NULL', // ExpiryDate
+                                    "'{$row[29]}'",       // ExpYear
+                                    "'{$row[30]}'",       // ExpMonth
+                                    "'{$row[31]}'",       // ExpDay
+                                    "'{$row[32]}'",       // MonthDay
+                                    "'{$row[33]}'",       // PromoQty
+                                    "'{$row[34]}'",       // Distributor
+                                    "'{$row[35]}'",       // AllocationNo
+                                    "'{$row[36]}'",       // RATE1
+                                    "'{$row[37]}'",       // RATE2
+                                    "'{$row[38]}'",       // RATE3
+                                    "'{$row[39]}'",       // RATE1BASIS
+                                    "'{$row[40]}'",       // RATE2BASIS
+                                    "'{$row[41]}'",       // RATE3BASIS
+                                    "'{$row[42]}'",       // BatchNo
+                                ];
+                    
+                                // Explicitly list column names to match the $insertValues array
+                                $columns = "Docno, Linetype, Productcode, Description, Location, Stockuom, Orderuom, Qty, Delqty, Backqty, Unitcost, Amount, Disc1, Disc2, Disc3, Disc4, Disc5, Discount, NetAmount, Rownum, Ref1, Ref2, Ref3, Acctcode, Sorownum, Delpc, Rempc, Avecost, ExpiryDate, ExpYear, ExpMonth, ExpDay, MonthDay, PromoQty, Distributor, AllocationNo, RATE1, RATE2, RATE3, RATE1BASIS, RATE2BASIS, RATE3BASIS, BatchNo";
+                                $insertScript[] = "INSERT INTO SPM.SODRLIN ($columns) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                        // dd($processedRecords);
-                        // Commit the transaction
-                        DB::COMMIT();
-                        $this->info("Rows successfully inserted into SPM.SODRLIN: $rowCount");
-
+                    
+                        $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                    
+                        // Write INSERT statements to file
+                        $outputFilename = 'sodrlin_insert_script.sql'; 
+                        $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                        file_put_contents($filePath, implode("\n", $insertScript));
+                    
+                        $this->info("Insert script successfully generated at: $filePath");
+                    
                     } catch (\Exception $e) {
-                        DB::rollBack();
-                        $this->error("Error inserting rows: {$e->getMessage()}");
+                        $this->error("Error generating insert script: {$e->getMessage()}");
                     }
                     break;
             case "SORETURNHDR":
@@ -1201,48 +1214,55 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                SOCreditCheck::create([
-                                    'SONo'                => $row[0]  ?? null,
-                                    'CustomerCode'        => $row[1]  ?? null,
-                                    'CreditLimit'         => $row[2]  ?? null,
-                                    'AvailableForSO'      => $row[3]  ?? null,
-                                    'OpenApprovedSO'      => $row[4]  ?? null,
-                                    'PendingDR'           => $row[5]  ?? null,
-                                    'ARAmount'            => $row[6]  ?? null,
-                                    'ApprovedDR'          => $row[7]  ?? null,
-                                    'ApprovedDM'          => $row[8]  ?? null,
-                                    'ApprovedCM'          => $row[9]  ?? null,
-                                    'ApprovedARBegBal'    => $row[10] ?? null,
-                                    'ApprovedCol'         => $row[11] ?? null,
-                                    'ApprovedColPDC'      => $row[12] ?? null,
-                                    'ReturnofGoodStock'   => $row[13] ?? null,
-                                    'ReturnofBadStock'    => $row[14] ?? null,
-                                    'DMQAJ'               => $row[15] ?? null,
-                                    'CMQAJ'               => $row[16] ?? null,
-                                    'PrePayment'          => $row[17] ?? null,
-                                    'BaseAging'           => $row[18] ?? null, 
-                                    'ActualAging'         => $row[19] ?? null, 
-                                    'CreditStatus'        => $row[20] ?? null,
-                                    'AgingStatus'         => $row[21] ?? null,
-                                    'Distributor'         => $row[22] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];  // Start the transaction in the script
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            // Generate INSERT statement
+                            $insertValues = [
+                                "'{$row[0]}'",        // SONo
+                                "'{$row[1]}'",        // CustomerCode
+                                "'{$row[2]}'",        // CreditLimit
+                                "'{$row[3]}'",        // AvailableForSO
+                                "'{$row[4]}'",        // OpenApprovedSO
+                                "'{$row[5]}'",        // PendingDR
+                                "'{$row[6]}'",        // ARAmount
+                                "'{$row[7]}'",        // ApprovedDR
+                                "'{$row[8]}'",        // ApprovedDM
+                                "'{$row[9]}'",        // ApprovedCM
+                                "'{$row[10]}'",       // ApprovedARBegBal
+                                "'{$row[11]}'",       // ApprovedCol
+                                "'{$row[12]}'",       // ApprovedColPDC
+                                "'{$row[13]}'",       // ReturnofGoodStock
+                                "'{$row[14]}'",       // ReturnofBadStock
+                                "'{$row[15]}'",       // DMQAJ
+                                "'{$row[16]}'",       // CMQAJ
+                                "'{$row[17]}'",       // PrePayment
+                                "'{$row[18]}'",       // BaseAging 
+                                "'{$row[19]}'",       // ActualAging 
+                                "'{$row[20]}'",       // CreditStatus
+                                "'{$row[21]}'",       // AgingStatus
+                                "'{$row[22]}'",       // Distributor
+                            ];
+                
+                            // List all columns explicitly
+                            $columns = "SONo, CustomerCode, CreditLimit, AvailableForSO, OpenApprovedSO, PendingDR, ARAmount, ApprovedDR, ApprovedDM, ApprovedCM, ApprovedARBegBal, ApprovedCol, ApprovedColPDC, ReturnofGoodStock, ReturnofBadStock, DMQAJ, CMQAJ, PrePayment, BaseAging, ActualAging, CreditStatus, AgingStatus, Distributor";
+                            $insertScript[] = "INSERT INTO SPM.SOCreditCheck ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.SOCreditCheck: $rowCount");
-
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'socreditcheck_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             default :
