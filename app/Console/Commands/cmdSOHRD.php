@@ -332,47 +332,71 @@ class cmdSOHRD extends Command
                     $file->next();
                     try {
                         $rowCount = 0;
-                        $insertScript = ["BEGIN TRAN;"];  // Add BEGIN TRAN
-                
+                        $insertScript = ["BEGIN TRAN;"];
+                    
                         foreach ($file as $row) {
                             if ($rowCount > 0 && $row && !empty($row[0])) {
-                                // Generate INSERT statement (with direct date formatting)
                                 $insertValues = [
-                                    "'{$row[0]}'",        // Distributor
-                                    "'{$row[1]}'",        // DocType
-                                    (isset($row[2]) && !empty($row[2])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[2])) . "', 120)" : 'NULL', // Docdate
-                                    "'{$row[3]}'",        // Docno
-                                    "'{$row[4]}'",        // ApplyTo
-                                    "'{$row[5]}'",        // Location
-                                    "'{$row[6]}'",        // Productcode
-                                    (isset($row[7]) && !empty($row[7])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[7])) . "', 120)" : 'NULL', // ExpiryDate
-                                    "'{$row[8]}'",        // Inventoriable
-                                    "'{$row[9]}'",        // Qty
-                                    "'{$row[10]}'",       // UnitCost
-                                    "'{$row[11]}'",       // StockUom
-                                    "'{$row[12]}'",       // TranUom
-                                    "'{$row[13]}'",       // Rownum
-                                    "'{$row[14]}'",       // Remarks
-                                    "'{$row[15]}'",       // Procstat
-                                    "'{$row[16]}'",       // PostUser
-                                    (isset($row[17]) && !empty($row[17])) ? "CONVERT(datetime, '" . date('Y-m-d H:i:s', strtotime($row[17])) . "', 120)" : 'NULL', // PostDate
-                                    "'{$row[18]}'",       // BatchNo
+                                    "'{$row[0]}'",        // DocNo
+                                    "'{$row[1]}'",        // LineType
+                                    "'{$row[2]}'",        // ProductCode
+                                    "'". preg_replace(
+                                        [
+                                            '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                            "/\\\\/",                       // Escape backslashes
+                                            "/'/",                         // Escape single quotes
+                                            '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                        ],
+                                        [
+                                            '', 
+                                            '\\\\', 
+                                            "''", 
+                                            '\/'
+                                        ],
+                                        $row[3]
+                                    ) . "'",
+                                    "'{$row[4]}'",        // Location
+                                    "'{$row[5]}'",        // StockUOM
+                                    "'{$row[6]}'",        // OrderUOM
+                                    "'{$row[7]}'",        // Qty
+                                    "'{$row[8]}'",        // UnitCost
+                                    "'{$row[9]}'",        // Amount
+                                    "'{$row[10]}'",       // Disc1
+                                    "'{$row[11]}'",       // Disc2
+                                    "'{$row[12]}'",       // Disc3
+                                    "'{$row[13]}'",       // Disc4
+                                    "'{$row[14]}'",       // Disc5
+                                    "'{$row[15]}'",       // Discount
+                                    "'{$row[16]}'",       // NetAmount
+                                    "'{$row[17]}'",       // RowNum
+                                    "'{$row[18]}'",       // Ref1
+                                    "'{$row[19]}'",       // Ref2
+                                    "'{$row[20]}'",       // Ref3
+                                    "'{$row[21]}'",       // RemQty
+                                    "'{$row[22]}'",       // CustomerCode
+                                    "'{$row[23]}'",       // Distributor
+                                    "'{$row[24]}'",       // RATE1
+                                    "'{$row[25]}'",       // RATE2
+                                    "'{$row[26]}'",       // RATE3
+                                    "'{$row[27]}'",       // RATE1BASIS
+                                    "'{$row[28]}'",       // RATE2BASIS
+                                    "'{$row[29]}'"        // RATE3BASIS
                                 ];
-                
-                                $insertScript[] = "INSERT INTO SPM.SOLIN (Distributor, DocType, Docdate, Docno, ApplyTo, Location, Productcode, ExpiryDate, Inventoriable, Qty, UnitCost, StockUom, TranUom, Rownum, Remarks, Procstat, PostUser, PostDate, BatchNo) VALUES (" . implode(',', $insertValues) . ");";
+                    
+                                $insertScript[] = "INSERT INTO SPM.SOLIN (DocNo, LineType, ProductCode, Description, Location, StockUOM, OrderUOM, Qty, UnitCost, Amount, Disc1, Disc2, Disc3, Disc4, Disc5, Discount, NetAmount, RowNum, Ref1, Ref2, Ref3, RemQty, CustomerCode, Distributor, RATE1, RATE2, RATE3, RATE1BASIS, RATE2BASIS, RATE3BASIS) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
                         }
-                
+                    
                         $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
-                
+                    
                         // Write INSERT statements to file
                         $outputFilename = 'solin_insert_script.sql';
                         $filePath = base_path('app/Console/Commands/' . $outputFilename);
                         file_put_contents($filePath, implode("\n", $insertScript));
-                
+                    
                         $this->info("Insert script successfully generated at: $filePath");
-                
+                    
                     } catch (\Exception $e) {
                         $this->error("Error generating insert script: {$e->getMessage()}");
                     }
@@ -475,7 +499,21 @@ class cmdSOHRD extends Command
                                 "'{$row[0]}'",        // DocNo
                                 "'{$row[1]}'",        // LineType
                                 "'{$row[2]}'",        // ProductCode
-                                "'". preg_replace('/[^\x00-\x7F\xA0-\xFF]/u', '', $row[3]) . "'", // Description (cleaned)
+                                "'". preg_replace(
+                                    [
+                                        '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                        "/\\\\/",                       // Escape backslashes
+                                        "/'/",                         // Escape single quotes
+                                        '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                    ],
+                                    [
+                                        '', 
+                                        '\\\\', 
+                                        "''", 
+                                        '\/'
+                                    ],
+                                    $row[3]
+                                ) . "'",
                                 "'{$row[4]}'",        // Location
                                 "'{$row[5]}'",        // StockUOM
                                 "'{$row[6]}'",        // OrderUOM
