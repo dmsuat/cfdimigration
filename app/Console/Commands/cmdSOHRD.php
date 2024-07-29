@@ -575,58 +575,59 @@ class cmdSOHRD extends Command
                     $file->next();
             
                     try {
-                        $rowCount = 0;
-                        $insertScript = ["BEGIN TRAN;"];
+                            $rowCount = 0;
+                            $insertScript = ["BEGIN TRAN;"];
                     
-                        foreach ($file as $row) {
-                            if ($rowCount > 0 && $row && !empty($row[0])) {
-                                $insertValues = [
-                                    "'{$row[0]}'",        // Docno
-                                    $this->formatDate($row[1]),        // Docdate
-                                    "'{$row[2]}'",        // Customercode
-                                    "'{$row[3]}'",        // Discountcode
-                                    "'{$row[4]}'",        // Shipto
-                                    "'{$row[5]}'",        // Poref
-                                    "'{$row[6]}'",        // Paymentcode
-                                    "'{$row[7]}'",        // Dropship
-                                    "'{$row[8]}'",        // Procstat
-                                    $this->formatDate($row[9]),          // Reqdate
-                                    "'{$row[10]}'",       // Totalsales
-                                    "'{$row[11]}'",       // Lessdiscount
-                                    "'{$row[12]}'",       // Salesdiscount
-                                    "'{$row[13]}'",       // Addvat
-                                    "'{$row[14]}'",       // Grandtotal
-                                    "'{$row[15]}'",       // Spare1
-                                    "'{$row[16]}'",       // Spare2
-                                    "'{$row[17]}'",       // Spare3
-                                    "'{$row[18]}'",       // Recuser
-                                    $this->formatDate($row[19]),          // Recdate
-                                    "'{$row[20]}'",       // Moduser
-                                    $this->formatDate($row[21]),          // Moddate
-                                    "'{$row[22]}'",       // Postuser
-                                    $this->formatDate($row[23]),          // Postdate
-                                    "'{$row[24]}'",       // Printuser
-                                    $this->formatDate($row[25]),          // Printdate
-                                    "'{$row[26]}'",       // Sino
-                                    $this->formatDate($row[27]),          // Sidate
-                                    $this->formatDate($row[28]),          // Duedate
-                                    "'{$row[29]}'",       // Printaxuser
-                                    $this->formatDate($row[30]),          // Printaxdate
-                                    "'{$row[31]}'",       // Remarks
-                                    "'{$row[32]}'",       // Grandhome
-                                    "'{$row[33]}'",       // NoSoref
-                                    "'{$row[34]}'",       // SiRef
-                                    "'{$row[35]}'",       // DRRef
-                                    "'{$row[36]}'",       // TransactionRef
-                                    "'{$row[37]}'",       // Distributor
-                                    "'{$row[39]}'",       // Salesman
-                                    "'{$row[40]}'",       // AmountPaid
-                                    "'{$row[41]}'",       // EWT
-                                    "'{$row[42]}'",       // ORNo
+                            foreach ($file as $row) {
+                                if ($rowCount > 0 && $row && !empty($row[0])) {
+                                    $insertValues = [
+                                        "'{$row[0]}'",        // Docno
+                                        "'{$row[1]}'",        // Sono 
+                                        $this->formatDate($row[2]),    // Docdate
+                                        "'{$row[3]}'",        // Customercode
+                                        "'{$row[4]}'",        // Discountcode
+                                        "'{$row[5]}'",        // Shipto
+                                        "'{$row[6]}'",        // Poref
+                                        "'{$row[7]}'",        // Paymentcode
+                                        "'{$row[8]}'",        // Dropship
+                                        "'{$row[9]}'",        // Procstat
+                                        $this->formatDate($row[10]),  // Reqdate
+                                        "'{$row[11]}'",       // Totalsales
+                                        "'{$row[12]}'",       // Lessdiscount
+                                        "'{$row[13]}'",       // Salesdiscount
+                                        "'{$row[14]}'",       // Addvat
+                                        "'{$row[15]}'",       // Grandtotal
+                                        "'{$row[16]}'",       // Spare1
+                                        "'{$row[17]}'",       // Spare2
+                                        "'{$row[18]}'",       // Spare3
+                                        "'{$row[19]}'",       // Recuser
+                                        $this->formatDate($row[20]),  // Recdate
+                                        "'{$row[21]}'",       // Moduser
+                                        $this->formatDate($row[22]),  // Moddate
+                                        "'{$row[23]}'",       // Postuser
+                                        $this->formatDate($row[24]),  // Postdate
+                                        "'{$row[25]}'",       // Printuser
+                                        $this->formatDate($row[26]),  // Printdate
+                                        "'{$row[27]}'",       // Sino
+                                        $this->formatDate($row[28]),  // Sidate
+                                        $this->formatDate($row[29]),  // Duedate
+                                        "'{$row[30]}'",       // Printaxuser
+                                        $this->formatDate($row[31]),  // Printaxdate
+                                        "'{$row[32]}'",       // Remarks
+                                        "'{$row[33]}'",       // Grandhome
+                                        "'{$row[34]}'",       // NoSoref
+                                        "'{$row[35]}'",       // SiRef
+                                        "'{$row[36]}'",       // DRRef
+                                        "'{$row[37]}'",       // TransactionRef
+                                        "'{$row[38]}'",       // Distributor
+                                        "'{$row[39]}'",       // Salesman
+                                        "'{$row[40]}'",       // AmountPaid
+                                        "'{$row[41]}'",       // EWT
+                                        "'{$row[42]}'",       // ORNo
                                 ];
                     
-                                // Explicitly list column names to match the $insertValues array
-                                $columns = "Docno, Docdate, Customercode, Discountcode, Shipto, Poref, Paymentcode, Dropship, Procstat, Reqdate, Totalsales, Lessdiscount, Salesdiscount, Addvat, Grandtotal, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Printuser, Printdate, Sino, Sidate, Duedate, Printaxuser, Printaxdate, Remarks, Grandhome, NoSoref, SiRef, DRRef, TransactionRef, Distributor, Salesman, AmountPaid, EWT, ORNo";
+                                // Explicitly list column names to match the $insertValues array, including Sono
+                                $columns = "Docno, Sono, Docdate, Customercode, Discountcode, Shipto, Poref, Paymentcode, Dropship, Procstat, Reqdate, Totalsales, Lessdiscount, Salesdiscount, Addvat, Grandtotal, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Printuser, Printdate, Sino, Sidate, Duedate, Printaxuser, Printaxdate, Remarks, Grandhome, NoSoref, SiRef, DRRef, TransactionRef, Distributor, Salesman, AmountPaid, EWT, ORNo"; 
                                 $insertScript[] = "INSERT INTO SPM.SODRHDR ($columns) VALUES (" . implode(',', $insertValues) . ");";
                             }
                             $rowCount++;
@@ -669,7 +670,21 @@ class cmdSOHRD extends Command
                                     "'{$row[0]}'",        // Docno
                                     "'{$row[1]}'",        // Linetype
                                     "'{$row[2]}'",        // Productcode
-                                    "'{$row[3]}'",        // Description
+                                    "'". preg_replace(
+                                        [
+                                            '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                            "/\\\\/",                       // Escape backslashes
+                                            "/'/",                         // Escape single quotes
+                                            '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                        ],
+                                        [
+                                            '', 
+                                            '\\\\', 
+                                            "''", 
+                                            '\/'
+                                        ],
+                                        $row[3]
+                                    ) . "'",
                                     "'{$row[4]}'",        // Location
                                     "'{$row[5]}'",        // Stockuom
                                     "'{$row[6]}'",        // Orderuom
@@ -746,66 +761,68 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                // SORETURNHDR:: where('Docno', $row[0])
-                                //         ->where('Distributor', $row[34])
-                                //         ->delete();
-
-                                SORETURNHDR::create([
-                                    'Docno'         => $row[0]  ?? null,
-                                    'Docdate'       => $this->formatDate($row[1]),  
-                                    'TranType'       => $row[2]  ?? null,
-                                    'Customercode'  => $row[3]  ?? null,
-                                    'Discountcode'  => $row[4]  ?? null,
-                                    'Shipto'        => $row[5]  ?? null,
-                                    'Poref'         => $row[6]  ?? null,
-                                    'Paymentcode'   => $row[7]  ?? null,
-                                    'Dropship'      => $row[8]  ?? null,
-                                    'Procstat'      => $row[9]  ?? null,
-                                    'Reqdate'       => $this->formatDate($row[10]), 
-                                    'Totalsales'    => $row[11] ?? null,
-                                    'Lessdiscount'  => $row[12] ?? null,
-                                    'Salesdiscount' => $row[13] ?? null,
-                                    'Addvat'        => $row[14] ?? null,
-                                    'Grandtotal'    => $row[15] ?? null,
-                                    'Spare1'        => $row[16] ?? null,
-                                    'Spare2'        => $row[17] ?? null,
-                                    'Spare3'        => $row[18] ?? null,
-                                    'Recuser'       => $row[19] ?? null,
-                                    'Recdate'       => $this->formatDate($row[20]), 
-                                    'Moduser'       => $row[21] ?? null,
-                                    'Moddate'       => $this->formatDate($row[22]), 
-                                    'Postuser'      => $row[23] ?? null,
-                                    'Postdate'      => $this->formatDate($row[24]), 
-                                    'Printuser'     => $row[25] ?? null,
-                                    'Printdate'     => $this->formatDate($row[26]),
-                                    'Drno'          => $row[27] ?? null,
-                                    'Drdate'        => $this->formatDate($row[28]), 
-                                    'Sino'          => $row[29] ?? null,
-                                    'Sidate'        => $this->formatDate($row[30]), 
-                                    'Duedate'       => $this->formatDate($row[31]), 
-                                    'Purpose'       => $row[32] ?? null,
-                                    'Remarks'       => $row[33] ?? null,
-                                    'Distributor'   => $row[34] ?? null,
-                                    'Salesman'      => $row[35] ?? null
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // Docno
+                                $this->formatDate($row[1]),        // Docdate
+                                "'{$row[2]}'",        // TranType
+                                "'{$row[3]}'",        // Customercode
+                                "'{$row[4]}'",        // Discountcode
+                                "'{$row[5]}'",        // Shipto
+                                "'{$row[6]}'",        // Poref
+                                "'{$row[7]}'",        // Paymentcode
+                                "'{$row[8]}'",        // Dropship
+                                "'{$row[9]}'",        // Procstat
+                                $this->formatDate($row[10]),  // Reqdate
+                                "'{$row[11]}'",       // Totalsales
+                                "'{$row[12]}'",       // Lessdiscount
+                                "'{$row[13]}'",       // Salesdiscount
+                                "'{$row[14]}'",       // Addvat
+                                "'{$row[15]}'",       // Grandtotal
+                                "'{$row[16]}'",       // Spare1
+                                "'{$row[17]}'",       // Spare2
+                                "'{$row[18]}'",       // Spare3
+                                "'{$row[19]}'",       // Recuser
+                                $this->formatDate($row[20]),  // Recdate
+                                "'{$row[21]}'",       // Moduser
+                                $this->formatDate($row[22]),  // Moddate
+                                "'{$row[23]}'",       // Postuser
+                                $this->formatDate($row[24]),  // Postdate
+                                "'{$row[25]}'",       // Printuser
+                                $this->formatDate($row[26]),  // Printdate
+                                "'{$row[27]}'",       // Drno
+                                $this->formatDate($row[28]),  // Drdate
+                                "'{$row[29]}'",       // Sino
+                                $this->formatDate($row[30]),  // Sidate
+                                $this->formatDate($row[31]),  // Duedate
+                                "'{$row[32]}'",       // Purpose
+                                "'{$row[33]}'",       // Remarks 
+                                "'{$row[34]}'",       // Distributor
+                                "'{$row[35]}'",       // Salesman
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "Docno, Docdate, TranType, Customercode, Discountcode, Shipto, Poref, Paymentcode, Dropship, Procstat, Reqdate, Totalsales, Lessdiscount, Salesdiscount, Addvat, Grandtotal, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Printuser, Printdate, Drno, Drdate, Sino, Sidate, Duedate, Purpose, Remarks, Distributor, Salesman";
+                            $insertScript[] = "INSERT INTO SPM.SORETURNHDR ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.SORETURNHDR: $rowCount");
-
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                   
+                    // Write INSERT statements to file
+                    $outputFilename = 'SORETURNHDR_insert_script.sql'; 
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "UnappliedAmount":
@@ -823,39 +840,44 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                UnappliedAmount::create([
-                                    'Docno'         => $row[0]  ?? null,
-                                    'Applyto'       => $row[1]  ?? null,
-                                    'Doctype'       => $row[2]  ?? null,
-                                    'Customercode'  => $row[3]  ?? null,
-                                    'Distributor'   => $row[4]  ?? null,
-                                    'Salesman'      => $row[5]  ?? null,
-                                    'Docdate'       => $this->formatDate($row[6]),
-                                    'Duedate'       => $this->formatDate($row[7]),
-                                    'Docamt'        => $row[8]  ?? null,
-                                    'Recuser'       => $row[9]  ?? null,
-                                    'Recdate'       => $this->formatDate($row[10]),
-                                    'Dochome'       => $row[11] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // Docno
+                                "'{$row[1]}'",        // Applyto
+                                "'{$row[2]}'",        // Doctype
+                                "'{$row[3]}'",        // Customercode
+                                "'{$row[4]}'",        // Distributor
+                                "'{$row[5]}'",        // Salesman
+                                $this->formatDate($row[6]),    // Docdate
+                                $this->formatDate($row[7]),    // Duedate
+                                "'{$row[8]}'",        // Docamt
+                                "'{$row[9]}'",        // Recuser
+                                $this->formatDate($row[10]),    // Recdate
+                                "'{$row[11]}'",       // Dochome
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "Docno, Applyto, Doctype, Customercode, Distributor, Salesman, Docdate, Duedate, Docamt, Recuser, Recdate, Dochome";
+                            $insertScript[] = "INSERT INTO SPM.UnappliedAmount ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.UnappliedAmount: $rowCount");
-                    // dd($counter);
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'unappliedamount_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "AllocationAssignment":
@@ -873,50 +895,55 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                AllocationAssignment::create([
-                                    'AllocationNo'     => $row[0]  ?? null,
-                                    'AllocationDate'   => $this->formatDate($row[1]),  
-                                    'SONo'             => $row[2]  ?? null,
-                                    'SODate'           => $this->formatDate($row[3]),  
-                                    'ReqDeliveryDate'  => $this->formatDate($row[4]),  
-                                    'Distributor'      => $row[5]  ?? null,
-                                    'ProductCode'      => $row[6]  ?? null,
-                                    'Location'         => $row[7]  ?? null,
-                                    'OrderQty'         => $row[8]  ?? null,
-                                    'OrderUOM'         => $row[9]  ?? null,
-                                    'AllocatedQty'     => $row[10] ?? null,
-                                    'ExpiryDate'       => $this->formatDate($row[11]),  
-                                    'ManualAllocQty'   => $row[12] ?? null,
-                                    'ManualAllocUOM'   => $row[13] ?? null,
-                                    'SORowNo'          => $row[14] ?? null,
-                                    'RecUser'          => $row[15] ?? null,
-                                    'RecDate'          => $this->formatDate($row[16]),  
-                                    'ModUser'          => $row[17] ?? null,
-                                    'ModDate'          => $this->formatDate($row[18]),  
-                                    'PostStatus'       => $row[19] ?? null,
-                                    'PostUser'         => $row[20] ?? null,
-                                    'PostDate'         => $this->formatDate($row[21]),  
-                                    'BatchNo'          => $row[34] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // AllocationNo
+                                $this->formatDate($row[1]),        // AllocationDate
+                                "'{$row[2]}'",        // SONo
+                                $this->formatDate($row[3]),        // SODate
+                                $this->formatDate($row[4]),        // ReqDeliveryDate
+                                "'{$row[5]}'",        // Distributor
+                                "'{$row[6]}'",        // ProductCode
+                                "'{$row[7]}'",        // Location
+                                "'{$row[8]}'",        // OrderQty
+                                "'{$row[9]}'",        // OrderUOM
+                                "'{$row[10]}'",       // AllocatedQty
+                                $this->formatDate($row[11]),       // ExpiryDate
+                                "'{$row[12]}'",       // ManualAllocQty
+                                "'{$row[13]}'",       // ManualAllocUOM
+                                "'{$row[14]}'",       // SORowNo
+                                "'{$row[15]}'",       // RecUser
+                                $this->formatDate($row[16]),       // RecDate
+                                "'{$row[17]}'",       // ModUser
+                                $this->formatDate($row[18]),       // ModDate
+                                "'{$row[19]}'",       // PostStatus
+                                "'{$row[20]}'",       // PostUser
+                                $this->formatDate($row[21]),       // PostDate
+                                "'{$row[34]}'",       // BatchNo 
+                            ]; // Notice the jump from index 21 to 34, since those fields are not present
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "AllocationNo, AllocationDate, SONo, SODate, ReqDeliveryDate, Distributor, ProductCode, Location, OrderQty, OrderUOM, AllocatedQty, ExpiryDate, ManualAllocQty, ManualAllocUOM, SORowNo, RecUser, RecDate, ModUser, ModDate, PostStatus, PostUser, PostDate, BatchNo";
+                            $insertScript[] = "INSERT INTO SPM.AllocationAssignment ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.AllocationAssignment: $rowCount");
-                    // dd($counter);
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'allocationassignment_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "IVHDRH":
@@ -934,48 +961,87 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                IVHDRH::create([
-                                    'Docno'        => $row[0]  ?? null,
-                                    'Docdate'      => $this->formatDate($row[1]),
-                                    'Desc1'        => $row[2]  ?? null,
-                                    'Desc2'        => $row[3]  ?? null,
-                                    'Trantype'     => $row[4]  ?? null,
-                                    'BU'           => $row[5]  ?? null,
-                                    'Supcode'      => $row[6]  ?? null,
-                                    'Procstat'     => $row[7]  ?? null,
-                                    'Spare1'       => $row[8]  ?? null,
-                                    'Spare2'       => $row[9]  ?? null,
-                                    'Spare3'       => $row[10] ?? null,
-                                    'Recuser'      => $row[11] ?? null,
-                                    'Recdate'      => $this->formatDate($row[12]),
-                                    'Moduser'      => $row[13] ?? null,
-                                    'Moddate'      => $this->formatDate($row[14]),
-                                    'Postuser'     => $row[15] ?? null,
-                                    'Postdate'     => $this->formatDate($row[16]),
-                                    'Distributor'  => $row[17] ?? null,
-                                    'ReferenceNo'  => $row[18] ?? null,
-                                    'Customer'     => $row[19] ?? null,
-                                    'Salesman'     => $row[20] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            // Clean and escape Description in one step
+                            $description = preg_replace(
+                                [
+                                    '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                    "/\\\\/",                       // Escape backslashes
+                                    "/'/",                         // Escape single quotes
+                                    '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                ],
+                                [
+                                    '',
+                                    '\\\\',
+                                    "''",
+                                    '\/'
+                                ],
+                                $row[2]
+                            );
+                
+                            $desc2 = preg_replace(
+                                [
+                                    '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                    "/\\\\/",                       // Escape backslashes
+                                    "/'/",                         // Escape single quotes
+                                    '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                ],
+                                [
+                                    '',
+                                    '\\\\',
+                                    "''",
+                                    '\/'
+                                ],
+                                $row[3]
+                            );
+                
+                            // Generate INSERT statement
+                            $insertValues = [
+                                "'{$row[0]}'",        // Docno
+                                $this->formatDate($row[1]),        // Docdate
+                                "'$description'",    // Desc1  (escape description for sql injection)
+                                "'$desc2'",     // Desc2  (escape description for sql injection)
+                                "'{$row[4]}'",        // Trantype
+                                "'{$row[5]}'",        // BU
+                                "'{$row[6]}'",        // Supcode
+                                "'{$row[7]}'",        // Procstat
+                                "'{$row[8]}'",        // Spare1
+                                "'{$row[9]}'",        // Spare2
+                                "'{$row[10]}'",       // Spare3
+                                "'{$row[11]}'",       // Recuser
+                                $this->formatDate($row[12]),       // Recdate
+                                "'{$row[13]}'",       // Moduser
+                                $this->formatDate($row[14]),       // Moddate
+                                "'{$row[15]}'",       // Postuser
+                                $this->formatDate($row[16]),       // Postdate
+                                "'{$row[17]}'",       // Distributor
+                                "'{$row[18]}'",       // ReferenceNo
+                                "'{$row[19]}'",       // Customer
+                                "'{$row[20]}'",       // Salesman
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "Docno, Docdate, Desc1, Desc2, Trantype, BU, Supcode, Procstat, Spare1, Spare2, Spare3, Recuser, Recdate, Moduser, Moddate, Postuser, Postdate, Distributor, ReferenceNo, Customer, Salesman";
+                            $insertScript[] = "INSERT INTO SPM.IVHDRH ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.IVHDRH: $rowCount");
-                    // dd($counter);
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'ivhdrh_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "IVLINH":
@@ -993,50 +1059,55 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                // Create and save using the Eloquent model
-                                IVLINH::create([
-                                    'Docno'             => $row[0]  ?? null,
-                                    'Productcode'       => $row[1]  ?? null,
-                                    'Docdate'           => $this->formatDate($row[2]),
-                                    'Location'          => $row[3]  ?? null,
-                                    'Uom'               => $row[4]  ?? null,
-                                    'Tranuom'           => $row[5]  ?? null,
-                                    'Soh'               => $row[6]  ?? null,
-                                    'Qty'               => $row[7]  ?? null,
-                                    'Unitcost'          => $row[8]  ?? null,
-                                    'Amount'            => $row[9]  ?? null,
-                                    'Avecost'           => $row[10] ?? null,
-                                    'Rownum'            => $row[11] ?? null,
-                                    'Eventid'           => $row[12] ?? null,
-                                    'Trantype'          => $row[13] ?? null,
-                                    'Ref2'             => $row[14] ?? null,
-                                    'Ref3'             => $row[15] ?? null,
-                                    'Currency'          => $row[16] ?? null,
-                                    'Unitcosthme'       => $row[17] ?? null,
-                                    'Totalhme'          => $row[18] ?? null,
-                                    'ExpiryDate'        => $this->formatDate($row[19]),
-                                    'ManufactureDate'   => $this->formatDate($row[20]),
-                                    'Distributor'       => $row[21] ?? null,
-                                    'BatchNo'           => $row[22] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // Docno
+                                "'{$row[1]}'",        // Productcode
+                                $this->formatDate($row[2]),    // Docdate
+                                "'{$row[3]}'",        // Location
+                                "'{$row[4]}'",        // Uom
+                                "'{$row[5]}'",        // Tranuom
+                                "'{$row[6]}'",        // Soh
+                                "'{$row[7]}'",        // Qty
+                                "'{$row[8]}'",        // Unitcost
+                                "'{$row[9]}'",        // Amount
+                                "'{$row[10]}'",       // Avecost
+                                "'{$row[11]}'",       // Rownum
+                                "'{$row[12]}'",       // Eventid
+                                "'{$row[13]}'",       // Trantype
+                                "'{$row[14]}'",       // Ref2
+                                "'{$row[15]}'",       // Ref3
+                                "'{$row[16]}'",       // Currency
+                                "'{$row[17]}'",       // Unitcosthme
+                                "'{$row[18]}'",       // Totalhme
+                                $this->formatDate($row[19]),       // ExpiryDate
+                                $this->formatDate($row[20]),       // ManufactureDate
+                                "'{$row[21]}'",       // Distributor
+                                "'{$row[22]}'",       // BatchNo
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "Docno, Productcode, Docdate, Location, Uom, Tranuom, Soh, Qty, Unitcost, Amount, Avecost, Rownum, Eventid, Trantype, Ref2, Ref3, Currency, Unitcosthme, Totalhme, ExpiryDate, ManufactureDate, Distributor, BatchNo";
+                            $insertScript[] = "INSERT INTO SPM.IVLINH ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    // Commit the transaction
-                    DB::COMMIT();
-                    $this->info("Rows successfully inserted into SPM.IVLINH: $rowCount");
-                    // dd($counter);
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'ivlinh_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "SORETURNLIN":
@@ -1054,77 +1125,98 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                SORETURNLIN::create([
-                                    'DocNo'               => $row[0]  ?? null,
-                                    'LineType'            => $row[1]  ?? null,
-                                    'ProductCode'         => $row[2]  ?? null,
-                                    'Description'         => $row[3]  ?? null,
-                                    'Location'            => $row[4]  ?? null,
-                                    'StockUOM'            => $row[5]  ?? null,
-                                    'OrderUOM'            => $row[6]  ?? null,
-                                    'Qty'                => $row[7]  ?? null,
-                                    'DelQty'              => $row[8]  ?? null,
-                                    'ReturnQty'           => $row[9]  ?? null,
-                                    'UnitCost'            => $row[10] ?? null,
-                                    'Amount'              => $row[11] ?? null,
-                                    'Disc1'               => $row[12] ?? null,
-                                    'Disc2'               => $row[13] ?? null,
-                                    'Disc3'               => $row[14] ?? null,
-                                    'Disc4'               => $row[15] ?? null,
-                                    'Disc5'               => $row[16] ?? null,
-                                    'Discount'            => $row[17] ?? null,
-                                    'RowNum'              => $row[18] ?? null,
-                                    'Ref1'               => $row[19] ?? null,
-                                    'Ref2'               => $row[20] ?? null,
-                                    'Ref3'               => $row[21] ?? null,
-                                    'AcctCode'            => $row[22] ?? null,
-                                    'DelPC'               => $row[23] ?? null,
-                                    'ReturnUOM'           => $row[24] ?? null,
-                                    'AveCost'             => $row[25] ?? null,
-                                    'DRRowNum'            => $row[26] ?? null,
-                                    'RemPC'               => $row[27] ?? null,
-                                    'ExpiryDate'         => $this->formatDate($row[28]),
-                                    'ExpYear'            => $row[29] ?? null,
-                                    'ExpMonth'           => $row[30] ?? null,
-                                    'ExpDay'             => $row[31] ?? null,
-                                    'BoQty'              => $row[32] ?? null,
-                                    'BoUom'              => $row[33] ?? null,
-                                    'BoUnitCost'         => $row[34] ?? null,
-                                    'Purpose'            => $row[35] ?? null,
-                                    'MonthDay'           => $row[36] ?? null,
-                                    'NetAmount'           => $row[37] ?? null,
-                                    'AppliedAmount'       => $row[38] ?? null,
-                                    'Reason'             => $row[39] ?? null,
-                                    'RefDocNo'           => $row[40] ?? null,
-                                    'VAT'                => $row[41] ?? null,
-                                    'TotalAmount'        => $row[42] ?? null,
-                                    'DestinationLocation' => $row[43] ?? null,
-                                    'Distributor'        => $row[44] ?? null,
-                                    'RATE1'              => $row[45] ?? null,
-                                    'RATE2'              => $row[46] ?? null,
-                                    'RATE3'              => $row[47] ?? null,
-                                    'RATE1BASIS'         => $row[48] ?? null,
-                                    'RATE2BASIS'         => $row[49] ?? null,
-                                    'RATE3BASIS'         => $row[50] ?? null,
-                                    'BatchNo'            => $row[51] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // DocNo
+                                "'{$row[1]}'",        // LineType
+                                "'{$row[2]}'",        // ProductCode
+                                "'". preg_replace(
+                                        [
+                                            '/[^\x00-\x7F\xA0-\xFF]/u',   // Remove invalid characters
+                                            "/\\\\/",                       // Escape backslashes
+                                            "/'/",                         // Escape single quotes
+                                            '/(?<!\\\\)\/(?=\d)/'           // Escape forward slash followed by a number (negative lookbehind for escaped backslash)
+                                        ],
+                                        [
+                                            '', 
+                                            '\\\\', 
+                                            "''", 
+                                            '\/'
+                                        ],
+                                        $row[3]
+                                    ) . "'",
+                                "'{$row[4]}'",        // Location
+                                "'{$row[5]}'",        // StockUOM
+                                "'{$row[6]}'",        // OrderUOM
+                                "'{$row[7]}'",        // Qty
+                                "'{$row[8]}'",        // DelQty
+                                "'{$row[9]}'",        // ReturnQty
+                                "'{$row[10]}'",       // UnitCost
+                                "'{$row[11]}'",       // Amount
+                                "'{$row[12]}'",       // Disc1
+                                "'{$row[13]}'",       // Disc2
+                                "'{$row[14]}'",       // Disc3
+                                "'{$row[15]}'",       // Disc4
+                                "'{$row[16]}'",       // Disc5
+                                "'{$row[17]}'",       // Discount
+                                "'{$row[18]}'",       // RowNum
+                                "'{$row[19]}'",       // Ref1
+                                "'{$row[20]}'",       // Ref2
+                                "'{$row[21]}'",       // Ref3
+                                "'{$row[22]}'",       // AcctCode
+                                "'{$row[23]}'",       // DelPC
+                                "'{$row[24]}'",       // ReturnUOM
+                                "'{$row[25]}'",       // AveCost
+                                "'{$row[26]}'",       // DRRowNum
+                                "'{$row[27]}'",       // RemPC
+                                $this->formatDate($row[28]),       // ExpiryDate
+                                "'{$row[29]}'",       // ExpYear
+                                "'{$row[30]}'",       // ExpMonth
+                                "'{$row[31]}'",       // ExpDay
+                                "'{$row[32]}'",       // BoQty
+                                "'{$row[33]}'",       // BoUom
+                                "'{$row[34]}'",       // BoUnitCost
+                                "'{$row[35]}'",       // Purpose
+                                "'{$row[36]}'",       // MonthDay
+                                "'{$row[37]}'",       // NetAmount
+                                "'{$row[38]}'",       // AppliedAmount
+                                "'{$row[39]}'",       // Reason
+                                "'{$row[40]}'",       // RefDocNo
+                                "'{$row[41]}'",       // VAT
+                                "'{$row[42]}'",       // TotalAmount
+                                "'{$row[43]}'",       // DestinationLocation
+                                "'{$row[44]}'",       // Distributor
+                                "'{$row[45]}'",       // RATE1
+                                "'{$row[46]}'",       // RATE2
+                                "'{$row[47]}'",       // RATE3
+                                "'{$row[48]}'",       // RATE1BASIS
+                                "'{$row[49]}'",       // RATE2BASIS
+                                "'{$row[50]}'",       // RATE3BASIS
+                                "'{$row[51]}'",       // BatchNo
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "DocNo, LineType, ProductCode, Description, Location, StockUOM, OrderUOM, Qty, DelQty, ReturnQty, UnitCost, Amount, Disc1, Disc2, Disc3, Disc4, Disc5, Discount, RowNum, Ref1, Ref2, Ref3, AcctCode, DelPC, ReturnUOM, AveCost, DRRowNum, RemPC, ExpiryDate, ExpYear, ExpMonth, ExpDay, BoQty, BoUom, BoUnitCost, Purpose, MonthDay, NetAmount, AppliedAmount, Reason, RefDocNo, VAT, TotalAmount, DestinationLocation, Distributor, RATE1, RATE2, RATE3, RATE1BASIS, RATE2BASIS, RATE3BASIS, BatchNo";
+                
+                            $insertScript[] = "INSERT INTO SPM.SORETURNLIN ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.SORETURLIN: $rowCount");
-
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'soreturnlin_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "ReceiptsPrincipalHDR":
@@ -1142,44 +1234,51 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                ReceiptsPrincipalHDR::create([
-                                    'RPTransNo'        => $row[0]  ?? null,
-                                    'RPTransDate'      => $this->formatDate($row[1]),
-                                    'Distributor'      => $row[2]  ?? null,
-                                    'Principal'        => $row[3]  ?? null,
-                                    'POTransNo'        => $row[4]  ?? null,
-                                    'InvoiceNo'        => $row[5]  ?? null,
-                                    'DRNo'             => $row[6]  ?? null,
-                                    'Remarks'          => $row[7]  ?? null,
-                                    'TotalCost'        => $row[8]  ?? null,
-                                    'RecUser'          => $row[9]  ?? null,
-                                    'RecDate'          => $this->formatDate($row[10]),
-                                    'ModUser'          => $row[11] ?? null,
-                                    'ModDate'          => $this->formatDate($row[12]),
-                                    'PostStatus'       => $row[13] ?? null,
-                                    'PostUser'         => $row[14] ?? null,
-                                    'PostDate'         => $this->formatDate($row[15]),
-                                    'Reason'           => $row[16] ?? null,
-                                    'TransType'        => $row[17] ?? null,
-                                    'ActualReceiptDate'=> $this->formatDate($row[18]),
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // RPTransNo
+                                $this->formatDate($row[1]),    // RPTransDate
+                                "'{$row[2]}'",        // Distributor
+                                "'{$row[3]}'",        // Principal
+                                "'{$row[4]}'",        // POTransNo
+                                "'{$row[5]}'",        // InvoiceNo
+                                "'{$row[6]}'",        // DRNo
+                                "'{$row[7]}'",        // Remarks
+                                "'{$row[8]}'",        // TotalCost
+                                "'{$row[9]}'",        // RecUser
+                                $this->formatDate($row[10]),    // RecDate
+                                "'{$row[11]}'",       // ModUser
+                                $this->formatDate($row[12]),    // ModDate
+                                "'{$row[13]}'",       // PostStatus
+                                "'{$row[14]}'",       // PostUser
+                                $this->formatDate($row[15]),    // PostDate
+                                "'{$row[16]}'",       // Reason
+                                "'{$row[17]}'",       // TransType
+                                $this->formatDate($row[18]),    // ActualReceiptDate
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "RPTransNo, RPTransDate, Distributor, Principal, POTransNo, InvoiceNo, DRNo, Remarks, TotalCost, RecUser, RecDate, ModUser, ModDate, PostStatus, PostUser, PostDate, Reason, TransType, ActualReceiptDate";
+                            $insertScript[] = "INSERT INTO SPM.ReceiptsPrincipalHDR ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.ReceiptsPrincipalHDR: $rowCount");
-
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'receiptsprincipalhdr_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "ReceiptsPrincipalLIN":
@@ -1197,44 +1296,51 @@ class cmdSOHRD extends Command
                 $file->next();
         
                 try {
-                    
-                    // Wrap the operation in a database transaction
                     $rowCount = 0;
-                    DB::beginTransaction();
-                    foreach($file as $row) {
-                        if ($rowCount > 0) {
-                            if ($row && !empty($row[0])) {
-                                ReceiptsPrincipalLIN::create([
-                                    'RPTransNo'        => $row[0]  ?? null,
-                                    'ProductCode'      => $row[1]  ?? null,
-                                    'Location'         => $row[2]  ?? null,
-                                    'SOH'              => $row[3]  ?? null,
-                                    'StockUOM'         => $row[4]  ?? null,
-                                    'Qty'              => $row[5]  ?? null,
-                                    'ExpiryDate'       => $this->formatDate($row[6]), 
-                                    'ExpiryYear'       => $row[7]  ?? null, // Assuming these are already year values
-                                    'ExpiryMonth'      => $row[8]  ?? null, // Assuming these are already month values
-                                    'ExpiryDay'        => $row[9]  ?? null, // Assuming these are already day values
-                                    'MfgDate'          => $this->formatDate($row[10]), 
-                                    'TransUOM'         => $row[11] ?? null,
-                                    'UnitCost'         => $row[12] ?? null,
-                                    'ShelfLife'        => $row[13] ?? null,
-                                    'MorD'             => $row[14] ?? null,
-                                    'TotalCost'        => $row[15] ?? null,
-                                    'RowNo'            => $row[16] ?? null,
-                                    'Distributor'      => $row[17] ?? null,
-                                    'BatchNo'          => $row[18] ?? null,
-                                ]);
-                            }
+                    $insertScript = ["BEGIN TRAN;"];
+                
+                    foreach ($file as $row) {
+                        if ($rowCount > 0 && $row && !empty($row[0])) {
+                            $insertValues = [
+                                "'{$row[0]}'",        // RPTransNo
+                                "'{$row[1]}'",        // ProductCode
+                                "'{$row[2]}'",        // Location
+                                "'{$row[3]}'",        // SOH
+                                "'{$row[4]}'",        // StockUOM
+                                "'{$row[5]}'",        // Qty
+                                $this->formatDate($row[6]),    // ExpiryDate
+                                "'{$row[7]}'",        // ExpiryYear
+                                "'{$row[8]}'",        // ExpiryMonth
+                                "'{$row[9]}'",        // ExpiryDay
+                                $this->formatDate($row[10]),    // MfgDate
+                                "'{$row[11]}'",       // TransUOM
+                                "'{$row[12]}'",       // UnitCost
+                                "'{$row[13]}'",       // ShelfLife
+                                "'{$row[14]}'",       // MorD
+                                "'{$row[15]}'",       // TotalCost
+                                "'{$row[16]}'",       // RowNo
+                                "'{$row[17]}'",       // Distributor
+                                "'{$row[18]}'",       // BatchNo
+                            ];
+                
+                            // Explicitly list column names to match the $insertValues array
+                            $columns = "RPTransNo, ProductCode, Location, SOH, StockUOM, Qty, ExpiryDate, ExpiryYear, ExpiryMonth, ExpiryDay, MfgDate, TransUOM, UnitCost, ShelfLife, MorD, TotalCost, RowNo, Distributor, BatchNo";
+                            $insertScript[] = "INSERT INTO SPM.ReceiptsPrincipalLIN ($columns) VALUES (" . implode(',', $insertValues) . ");";
                         }
                         $rowCount++;
                     }
-                    DB::commit();
-                    $this->info("Rows successfully inserted into SPM.ReceiptsPrincipalLIN: $rowCount");
-
+                
+                    $insertScript[] = "ROLLBACK TRAN;"; // End the transaction in the script
+                
+                    // Write INSERT statements to file
+                    $outputFilename = 'receiptsprincipallin_insert_script.sql';
+                    $filePath = base_path('app/Console/Commands/' . $outputFilename);
+                    file_put_contents($filePath, implode("\n", $insertScript));
+                
+                    $this->info("Insert script successfully generated at: $filePath");
+                
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    $this->error("Error inserting rows: {$e->getMessage()}");
+                    $this->error("Error generating insert script: {$e->getMessage()}");
                 }
                 break;
             case "SOCreditCheck":
